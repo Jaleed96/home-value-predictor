@@ -18,8 +18,8 @@ longitudes = []
 for item in geom_col:
     if type(item) != float:
         point_dict = json.loads(item)
-        latitudes.append(point_dict["coordinates"][0])
-        longitudes.append(point_dict["coordinates"][1])
+        latitudes.append(point_dict["coordinates"][1])
+        longitudes.append(point_dict["coordinates"][0])
     else:
         latitudes.append(None)
         longitudes.append(None)
@@ -29,16 +29,16 @@ data["Longitude"] = longitudes
 
 
 # Removing null entries
-non_null_cols = ["Latitude", "Longitude", "IssuedDate", "ExpiryDate", "ExtractDate", "BusinessType", "BusinessSubType", "UnitType", "LocalArea"]
-samples_to_remove = []
+# non_null_cols = ["Latitude", "Longitude", "IssuedDate", "ExpiryDate", "ExtractDate", "BusinessType", "BusinessSubType", "UnitType", "LocalArea"]
+# samples_to_remove = []
 
-for i in range(data.shape[0]):
-    cur_sample = data.iloc[i]
-    for j in range(len(non_null_cols)):
-        if type(cur_sample[non_null_cols[j]]) == float and math.isnan(cur_sample[non_null_cols[j]]):
-            samples_to_remove.append(i)
+# for i in range(data.shape[0]):
+#     cur_sample = data.iloc[i]
+#     for j in range(len(non_null_cols)):
+#         if type(cur_sample[non_null_cols[j]]) == float and math.isnan(cur_sample[non_null_cols[j]]):
+#             samples_to_remove.append(i)
 
-data.drop(samples_to_remove, inplace=True)
+data.dropna(axis=0, how='any', inplace=True)
 
 # Normalizing dated cols to year only
 print("Standardizing datetime/dates to year only...")

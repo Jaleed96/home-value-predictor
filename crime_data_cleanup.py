@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 import math
-#from pyproj import Proj
+from pyproj import Proj
 
 data = pd.read_csv("./datasets/crimedata_csv_all_years.csv")
 
