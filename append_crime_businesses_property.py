@@ -22,14 +22,12 @@ def get_crimes_in_vicinity(property_coord, year):
         if col.startswith("TYPE"):
             crime_cols.append(col)
             crime_freq.append(0)
- ###############################
-###############################
-# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
+
     for i in range(len(crime_data)):
         for j in range(len(crime_cols)):
             cur_sample = crime_data.iloc[i]
             if int(cur_sample["YEAR"]) <= year and calculate_dist(property_coord, (cur_sample["LATITUDE"], cur_sample["LONGITUDE"])) <= CRIME_RADIUS:
-                crime_freq[j] += cur_sample[crime_cols[j]]
+               crime_freq[j] += cur_sample[crime_cols[j]]
     
     return crime_freq
 
@@ -41,31 +39,25 @@ def get_businesses_in_vicinity(property_coord, year):
         if col.startswith("BusinessType"):
             business_cols.append(col)
             business_freq.append(0)
- ###############################
-###############################
-# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
+            
     for i in range(len(business_data)):
         for j in range(len(business_cols)):
             cur_sample = business_data.iloc[i]
             distance_from_property = calculate_dist(property_coord, (cur_sample["Latitude"], cur_sample["Longitude"]))
             
             if int(cur_sample["IssuedYear"]) <= year and int(cur_sample["ExpiryYear"]) >= year and distance_from_property <= BUSINESS_RADIUS:
-                business_freq[j] += cur_sample[business_cols[j]]
+               business_freq[j] += cur_sample[business_cols[j]]
 
     return business_freq
 
-property_data = pd.read_csv("./datasets/coord-price-no-geom.csv")
-property_geom = pd.read_csv("./datasets/coord-geom.csv")
+property_data = pd.read_csv("./datasets/coord-price-geom.csv")
 business_frequency = []
 crime_frequency = []
 
-###############################
-###############################
-# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
 
 for i in range(len(property_data)):
     cur_sample = property_data.iloc[i]
-    cur_geom = property_geom.iloc[i]["POLYGON_CENTROID"][5:].split(" ")
+    cur_geom = cur_sample["POLYGON_CENTROID"][5:].split(" ")
 
     lat = float(cur_geom[1][:-1])
     long = float(cur_geom[0][1:])
@@ -76,7 +68,24 @@ for i in range(len(property_data)):
     business_frequency.append(nearby_businesses)
     crime_frequency.append(nearby_crime)
 
-print(crime_frequency)
-print(business_frequency)
+p = 0
+for col in crime_data.columns:
+    if col.startswith("TYPE"):
+        cur_col = []
+        for j in range(len(crime_frequency)):
+            cur_col.append(crime_frequency[j][p])
+        p += 1
+        property_data[col] = cur_col
+
+p = 0
+for col in business_data.columns:
+    if col.startswith("BusinessType"):
+        cur_col = []
+        for j in range(len(business_frequency)):
+            cur_col.append(business_frequency[j][p])
+        p += 1
+        property_data[col] = cur_col
+
+property_data.drop(columns=["POLYGON_CENTROID"], inplace=True)
 
 property_data.to_csv("./datasets/test.csv", index=None, header=True)
