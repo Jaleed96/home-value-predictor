@@ -3,9 +3,7 @@ import numpy as np
 import random
 import math
 import geopy.distance
-
-test_house_lat = 49.263591
-test_house_long = -123.063178
+import json
 
 CRIME_RADIUS = 0.5
 BUSINESS_RADIUS = 0.5
@@ -17,40 +15,68 @@ def calculate_dist(coord_from, coord_to):
     return geopy.distance.vincenty(coord_from, coord_to).km
 
 def get_crimes_in_vicinity(property_coord, year):
-    crime_freq = {}
-    crime_cols = ["TYPE_Break and Enter Commercial", "TYPE_Break and Enter Residential/Other", \
-     "TYPE_Mischief", "TYPE_Other Theft", "TYPE_Theft from Vehicle", "TYPE_Theft of Bicycle", "TYPE_Theft of Vehicle", "TYPE_Vehicle Collision or Pedestrian Struck (with Fatality)", "TYPE_Vehicle Collision or Pedestrian Struck (with Injury)"]
+    crime_freq = []
+    crime_cols = []
 
+    for col in crime_data.columns:
+        if col.startswith("TYPE"):
+            crime_cols.append(col)
+            crime_freq.append(0)
+ ###############################
+###############################
+# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
     for i in range(len(crime_data)):
         for j in range(len(crime_cols)):
             cur_sample = crime_data.iloc[i]
             if int(cur_sample["YEAR"]) <= year and calculate_dist(property_coord, (cur_sample["LATITUDE"], cur_sample["LONGITUDE"])) <= CRIME_RADIUS:
-                if crime_cols[j] in crime_freq:
-                    crime_freq[crime_cols[j]] += cur_sample[crime_cols[j]]
-                else:
-                    crime_freq[crime_cols[j]] = cur_sample[crime_cols[j]]
+                crime_freq[j] += cur_sample[crime_cols[j]]
     
     return crime_freq
 
 def get_businesses_in_vicinity(property_coord, year):
-    business_freq = {}
+    business_freq = []
     business_cols = []
 
     for col in business_data.columns:
         if col.startswith("BusinessType"):
             business_cols.append(col)
-    
+            business_freq.append(0)
+ ###############################
+###############################
+# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
     for i in range(len(business_data)):
         for j in range(len(business_cols)):
             cur_sample = business_data.iloc[i]
             distance_from_property = calculate_dist(property_coord, (cur_sample["Latitude"], cur_sample["Longitude"]))
             
             if int(cur_sample["IssuedYear"]) <= year and int(cur_sample["ExpiryYear"]) >= year and distance_from_property <= BUSINESS_RADIUS:
-                if business_cols[j] in business_freq:
-                    business_freq[business_cols[j]] += cur_sample[business_cols[j]]
-                else:
-                    business_freq[business_cols[j]] = cur_sample[business_cols[j]]
-    return business_freq
-#print(get_crimes_in_vicinity((test_house_lat, test_house_long), 2018))
+                business_freq[j] += cur_sample[business_cols[j]]
 
-print(get_businesses_in_vicinity((test_house_lat, test_house_long), 2014))
+    return business_freq
+
+property_data = pd.read_csv("./datasets/coord-price-no-geom.csv")
+property_geom = pd.read_csv("./datasets/coord-geom.csv")
+business_frequency = []
+crime_frequency = []
+
+###############################
+###############################
+# MAKE SURE TO CHANGE THE RANGE VALUE BACK TO LEN()
+
+for i in range(len(property_data)):
+    cur_sample = property_data.iloc[i]
+    cur_geom = property_geom.iloc[i]["POLYGON_CENTROID"][5:].split(" ")
+
+    lat = float(cur_geom[1][:-1])
+    long = float(cur_geom[0][1:])
+
+    nearby_businesses = get_businesses_in_vicinity((lat, long), int(cur_sample["REPORT_YEAR"]))
+    nearby_crime = get_crimes_in_vicinity((lat, long), int(cur_sample["REPORT_YEAR"]))
+
+    business_frequency.append(nearby_businesses)
+    crime_frequency.append(nearby_crime)
+
+print(crime_frequency)
+print(business_frequency)
+
+property_data.to_csv("./datasets/test.csv", index=None, header=True)
