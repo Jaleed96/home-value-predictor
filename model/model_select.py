@@ -66,8 +66,8 @@ for i in range(0, len(lambda_list)):
 print("Best value of lambda: 10 **", lambda_coef[best_lambda])
 # plot the result
 f_lambda = np.array(f_lambda)
-plt.plot(np.arange(-2, 2.25, 0.25), f_lambda[:, [0]])
-plt.plot(np.arange(-2, 2.25, 0.25), f_lambda[:, [1]])
+plt.plot(lambda_coef, f_lambda[:, [0]])
+plt.plot(lambda_coef, f_lambda[:, [1]])
 plt.title("Error - lambda in Lasso regression")
 plt.ylabel("Error")
 plt.xlabel("lambda")
