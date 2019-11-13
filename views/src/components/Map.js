@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
 import GoogleMapReact from 'google-map-react';
-import {API_KEY} from '../utils/auth';
- 
-const AnyReactComponent = ({ text }) => <div>{text}</div>;
- 
+import { API_KEY } from '../utils/auth';
+import Pin from './Pin';
+
 class Map extends Component {
+  state = {
+    isMarked: false,
+    markerCoord: {},
+  }
+
   static defaultProps = {
     center: {
       lat: 49.252738,
@@ -12,25 +16,35 @@ class Map extends Component {
     },
     zoom: 12
   };
- 
+
+  onMapClick = ({ x, y, lat, lng, event }) => {
+    this.setState({
+      isMarked: true,
+      markerCoord: {
+        lat: lat,
+        lng: lng
+      }
+    })
+  }
+
   render() {
     return (
-      // Important! Always set the container height explicitly
       <div style={{ height: '100vh', width: '100%' }}>
         <GoogleMapReact
           bootstrapURLKeys={{ key: API_KEY }}
           defaultCenter={this.props.center}
           defaultZoom={this.props.zoom}
+          onClick={this.onMapClick}
         >
-          <AnyReactComponent
-            lat={59.955413}
-            lng={30.337844}
-            text="My Marker"
+          <Pin
+            lat={this.state.markerCoord.lat}
+            lng={this.state.markerCoord.lng}
+            text="Marker"
           />
         </GoogleMapReact>
       </div>
     );
   }
 }
- 
+
 export default Map;
