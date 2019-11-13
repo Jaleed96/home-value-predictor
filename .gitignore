@@ -1,2 +1,4 @@
 *.txt
 *datasets*
+*.json
+/views/src/utils/auth.js
