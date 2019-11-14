@@ -123,7 +123,7 @@ const predictValue = (latitude, longitude) => {
             header: header
         });
 
-        const data = { REPORT_YEAR: 2019 }
+        const data = { REPORT_YEAR: 2020 }
         for (const column in row) {
             if (column != "elementary_area" && column != "secondary_area")
                 data[column] = row[column]
