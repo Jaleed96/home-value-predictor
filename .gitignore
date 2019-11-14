@@ -2,3 +2,5 @@
 *datasets*
 *.json
 /views/src/utils/auth.js
+model/node_modules
+model/bq-loader.json

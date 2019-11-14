@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { API_KEY } from '../utils/auth';
 import Pin from './Pin';
+//import SearchBar from './SearchBar';
 
 class Map extends Component {
   state = {
