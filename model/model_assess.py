@@ -28,8 +28,3 @@ y_pred = clf.predict(X_test)
 mae = mean_absolute_error(y_test, y_pred)
 print('Mean Absolute Error = ', mae)
 print('Coefficient of Determination = ', clf.score(X_test, y_test))
-
-print("\ntop 10 feature: ")
-feature_rank = np.flip(np.argsort(clf.coef_))
-for i in range(10):
-    print(data_X.columns[feature_rank[i]], ":", clf.coef_[feature_rank[i]])
