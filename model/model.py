@@ -9,4 +9,4 @@ from joblib import dump, load
 data = pd.read_csv("input.csv")
 clf = load("model.joblib")
 y_pred = clf.predict(data)
-print(y_pred[0][0])
+print(y_pred[0][0], end="")

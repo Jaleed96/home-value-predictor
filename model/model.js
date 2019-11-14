@@ -92,77 +92,82 @@ const predictValue = (latitude, longitude) => {
     };
 
     // Run the query
-    bigqueryClient.query(options).then(rows => {
-        row = rows[0][0]
+    return new Promise((resolve, reject) => {
+        bigqueryClient.query(options).then(rows => {
+            row = rows[0][0]
 
-        if (row["elementary_area"] && elementary_area[row["elementary_area"]] === 0)
-            elementary_area[row["elementary_area"]] = 1
-        else elementary_area["nan"] = 1
+            if (row["elementary_area"] && elementary_area[row["elementary_area"]] === 0)
+                elementary_area[row["elementary_area"]] = 1
+            else elementary_area["nan"] = 1
 
-        if (row["secondary_area"] && secondary_area[row["secondary_area"]] === 0)
-            secondary_area[row["secondary_area"]] = 1
-        else secondary_area["nan"] = 1
+            if (row["secondary_area"] && secondary_area[row["secondary_area"]] === 0)
+                secondary_area[row["secondary_area"]] = 1
+            else secondary_area["nan"] = 1
 
-        const header = []
-        header.push({ id: 'REPORT_YEAR', title: 'REPORT_YEAR' })
-        for (const column in row) {
-            if (column != "elementary_area" && column != "secondary_area")
-                header.push({ id: column, title: column })
-        }
-        for (const column in elementary_area) {
-            header.push({
-                id: "elementary_area_" + column,
-                title: "elementary_area_" + column
-            })
-        }
-        for (const column in secondary_area) {
-            header.push({
-                id: "secondary_area_" + column,
-                title: "secondary_area_" + column
-            })
-        }
+            const header = []
+            header.push({ id: 'REPORT_YEAR', title: 'REPORT_YEAR' })
+            for (const column in row) {
+                if (column != "elementary_area" && column != "secondary_area")
+                    header.push({ id: column, title: column })
+            }
+            for (const column in elementary_area) {
+                header.push({
+                    id: "elementary_area_" + column,
+                    title: "elementary_area_" + column
+                })
+            }
+            for (const column in secondary_area) {
+                header.push({
+                    id: "secondary_area_" + column,
+                    title: "secondary_area_" + column
+                })
+            }
 
-        const csvWriter = createCsvWriter({
-            path: 'input.csv',
-            header: header
+            const csvWriter = createCsvWriter({
+                path: 'input.csv',
+                header: header
+            });
+
+            const data = { REPORT_YEAR: 2019 }
+            for (const column in row) {
+                if (column != "elementary_area" && column != "secondary_area")
+                    data[column] = row[column]
+            }
+
+            for (const column in elementary_area) {
+                data["elementary_area_" + column] = elementary_area[column]
+            }
+            for (const column in secondary_area) {
+                data["secondary_area_" + column] = secondary_area[column]
+            }
+
+            csvWriter.writeRecords([data]).then(() => {
+                runPy().then(response => {
+                    resolve({ ...row, prediction: response.toString() });
+                }).catch(err => {
+                    throw new Error(err.toString());
+                });
+            }).catch((error) => {
+                console.error(error.toString());
+            });
+        }).catch(error => { console.error(error) });
+    })
+
+}
+
+let runPy = () => {
+    return new Promise((success, nosuccess) => {
+        const pyprog = spawn('python3', ['./model.py']);
+
+        pyprog.stdout.on('data', (data) => {
+            success(data);
         });
 
-        const data = { REPORT_YEAR: 2020 }
-        for (const column in row) {
-            if (column != "elementary_area" && column != "secondary_area")
-                data[column] = row[column]
-        }
-
-        for (const column in elementary_area) {
-            data["elementary_area_" + column] = elementary_area[column]
-        }
-        for (const column in secondary_area) {
-            data["secondary_area_" + column] = secondary_area[column]
-        }
-
-        csvWriter.writeRecords([data]).then(() => {
-            runPy.then(data => {
-                console.log(data.toString());
-            }).catch(err => console.log(err));
+        pyprog.stderr.on('data', (data) => {
+            nosuccess(data);
         });
     });
 }
-
-
-predictValue(-123.02929798876954, 49.23536759420696);
-
-
-let runPy = new Promise((success, nosuccess) => {
-    const pyprog = spawn('python', ['./model.py']);
-
-    pyprog.stdout.on('data', (data) => {
-        success(data);
-    });
-
-    pyprog.stderr.on('data', (data) => {
-        nosuccess(data);
-    });
-});
 
 const elementary_area = {
     "Admiral Seymour Elementary": 0,
@@ -207,3 +212,4 @@ const secondary_area = {
     "nan": 0,
 }
 
+module.exports.predictValue = predictValue;
