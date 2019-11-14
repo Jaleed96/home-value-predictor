@@ -68,7 +68,7 @@ const predictValue = (latitude, longitude) => {
     SUM(NEIGHBOURHOOD_West_End) AS NEIGHBOURHOOD_West_End,
     SUM(NEIGHBOURHOOD_West_Point_Grey) AS NEIGHBOURHOOD_West_Point_Grey
   FROM \`price_predicion_datasets\`.\`crime_data_transformed\` c
-  WHERE c.\`YEAR\` > 2014 AND ST_DISTANCE(c.\`GEOM\`, ST_GEOGFROMTEXT("POINT(` + latitude + " " + longitude + `)")) < 500
+  WHERE c.\`YEAR\` > 2015 AND ST_DISTANCE(c.\`GEOM\`, ST_GEOGFROMTEXT("POINT(` + latitude + " " + longitude + `)")) < 500
   ) cc
   USING(row)
   LEFT JOIN
@@ -94,9 +94,13 @@ const predictValue = (latitude, longitude) => {
     // Run the query
     bigqueryClient.query(options).then(rows => {
         row = rows[0][0]
-        if (row["elementary_area"]) elementary_area[row["elementary_area"]] = 1
+
+        if (row["elementary_area"] && elementary_area[row["elementary_area"]] === 0)
+            elementary_area[row["elementary_area"]] = 1
         else elementary_area["nan"] = 1
-        if (row["secondary_area"]) secondary_area[row["secondary_area"]] = 1
+
+        if (row["secondary_area"] && secondary_area[row["secondary_area"]] === 0)
+            secondary_area[row["secondary_area"]] = 1
         else secondary_area["nan"] = 1
 
         const header = []
@@ -145,7 +149,7 @@ const predictValue = (latitude, longitude) => {
 }
 
 
-predictValue(-123.222868575653, 49.2748818573243);
+predictValue(-123.02929798876954, 49.23536759420696);
 
 
 let runPy = new Promise((success, nosuccess) => {
