@@ -143,7 +143,21 @@ const predictValue = (latitude, longitude) => {
 
             csvWriter.writeRecords([data]).then(() => {
                 runPy().then(response => {
-                    resolve({ ...row, prediction: response.toString() });
+                    const sql = `SELECT AVG(\`PRICE_PER_SQRMETER\`) AS average_price_per_sqrmeter
+                    FROM \`price_predicion_datasets\`.\`coord_price\` p
+                    INNER JOIN \`price_predicion_datasets\`.\`coord_geom\` g
+                    USING(\`TAX_COORD\`)
+                    WHERE p.\`REPORT_YEAR\` = 2019 AND ST_DISTANCE(g.\`POLYGON_CENTROID\`,
+                     ST_GEOGFROMTEXT("POINT(` + latitude + " " + longitude + `)")) < 1000`
+                    bigqueryClient.query({
+                        query: sql,
+                        location: 'US',
+                    }).then(average => {
+                        resolve({
+                            ...row, prediction: response.toString(),
+                            current_average: average[0][0].average_price_per_sqrmeter
+                        });
+                    })
                 }).catch(err => {
                     throw new Error(err.toString());
                 });
@@ -157,7 +171,7 @@ const predictValue = (latitude, longitude) => {
 
 let runPy = () => {
     return new Promise((success, nosuccess) => {
-        const pyprog = spawn('python3', ['./model.py']);
+        const pyprog = spawn('python', ['./model.py']);
 
         pyprog.stdout.on('data', (data) => {
             success(data);
