@@ -171,7 +171,7 @@ const predictValue = (latitude, longitude) => {
 
 let runPy = () => {
     return new Promise((success, nosuccess) => {
-        const pyprog = spawn('python', ['./model.py']);
+        const pyprog = spawn('python3', ['./model.py']);
 
         pyprog.stdout.on('data', (data) => {
             success(data);
