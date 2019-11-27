@@ -7,7 +7,7 @@ function ResultsModal(props) {
     useEffect(() => {
         setIsOpen(props.open);
     }, [props.open])
-const objItems = Object.keys(props.content).map((item) => <pre>{item}: {props.content[item]}</pre>)
+const objItems = Object.keys(props.content).map((item) => <pre key={item}>{item}: {props.content[item]}</pre>)
 
     return (
         <Modal open={isOpen} closeOnDimmerClick={true} closeOnDocumentClick={true} onClose={props.handleModalClosed}>
